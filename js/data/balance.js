@@ -11,7 +11,7 @@
     // `enabled` = the Lab exists in this build. `hash` is a salted PBKDF2-SHA256 of YOUR code (never the code itself).
     // Generate the block with `node tools/owner-access.js --write` (or tools/owner-access.html); leave hash empty to keep the Lab locked for everyone.
     // OWNER-ACCESS-BEGIN
-    OWNER_ACCESS: { enabled: true, iterations: 210000, salt: '', hash: '' },
+    OWNER_ACCESS: { enabled: true, iterations: 210000, salt: 'pHwo0pDneSesDSGR3aZHHg==', hash: 'f5cbdb6167518bf78f8d9175117241110e7431cf0be60b00d0fa862213144cca' },
     // OWNER-ACCESS-END
     BOOT_TIMEOUT_MS: 15000,
   };
