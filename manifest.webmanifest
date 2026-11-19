@@ -1,0 +1,13 @@
+{
+  "name": "Jujutsu Kaisen Tower Defense",
+  "short_name": "JJK TD",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0b0820",
+  "theme_color": "#0b0820",
+  "icons": [
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icon-1024.png", "sizes": "1024x1024", "type": "image/png" }
+  ]
+}

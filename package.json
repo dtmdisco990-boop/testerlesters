@@ -1,0 +1,17 @@
+{
+  "name": "jjk-tower-defense",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static HTML/CSS/JS tower defense. No build step and no runtime dependencies; Node/Playwright are only used for tests.",
+  "scripts": {
+    "serve": "python3 -m http.server 8123",
+    "test": "node --test tests/*.test.js",
+    "test:browser": "node tests/browser/smoke.js && node tests/browser/domain.js && node tests/browser/models.js",
+    "build:www": "node scripts/build-www.js"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.0.0"
+  }
+}

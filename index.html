@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JJK TD">
+<meta name="theme-color" content="#0b0820">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#0b0a14">
+<link rel="icon" href="data:,">
+<title>Jujutsu Kaisen: Tower Defense</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="viewport">
+  <div id="stage">
+    <canvas id="battle-canvas" width="1280" height="720"></canvas>
+    <div id="screen-root"></div>
+    <div id="overlay-root"></div>
+    <div id="toast-root"></div>
+    <div id="tooltip" role="tooltip"></div>
+    <div id="boot">
+      <div class="boot-card" id="boot-loading">
+        <div class="boot-logo">JUJUTSU KAISEN</div>
+        <div class="boot-sub">TOWER DEFENSE</div>
+        <div class="boot-bar"><i id="boot-fill"></i></div>
+        <div class="boot-note" id="boot-note">Loading...</div>
+      </div>
+      <div class="boot-card boot-err" id="boot-error" hidden>
+        <div class="boot-logo err">GAME FAILED TO LOAD</div>
+        <div class="boot-note" id="boot-error-msg"></div>
+        <div class="boot-actions">
+          <button class="btn primary" id="boot-retry">RETRY</button>
+          <button class="btn danger" id="boot-reset">RESET SAVE</button>
+        </div>
+        <div class="boot-note small">RESET SAVE keeps a backup copy in your browser storage, then reloads.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<noscript><div style="position:fixed;inset:0;display:grid;place-items:center;background:#0b0a14;color:#fff;font:20px sans-serif">This game needs JavaScript enabled.</div></noscript>
+
+<!-- Boot guard: runs first. Guarantees there is never an infinite spinner. -->
+<script>
+(function () {
+  var failed = false;
+  window.__booted = false;
+  function $(id) { return document.getElementById(id); }
+  function fit() {
+    var st = $('stage'); if (!st) return;
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    st.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit); fit();
+  window.__bootProgress = function (p, note) {
+    var f = $('boot-fill'); if (f) f.style.width = Math.round(p * 100) + '%';
+    if (note && $('boot-note')) $('boot-note').textContent = note;
+  };
+  window.__bootFail = function (msg) {
+    if (window.__booted || failed) return;
+    failed = true;
+    $('boot-loading').hidden = true;
+    $('boot-error').hidden = false;
+    $('boot-error-msg').textContent = String(msg || 'Unknown error');
+    $('boot').style.display = 'flex';
+  };
+  window.__bootDone = function () {
+    if (failed) return; // a failed script load must never be hidden by a later 'success'
+    window.__booted = true;
+    var b = $('boot'); if (b) { b.classList.add('done'); setTimeout(function () { b.style.display = 'none'; }, 400); }
+  };
+  window.addEventListener('error', function (ev) {
+    if (!window.__booted) {
+      var t = ev.target;
+      if (t && t.tagName === 'SCRIPT') window.__bootFail('Could not load ' + (t.getAttribute('src') || 'a script file') + '. Check that all files were uploaded.');
+      else window.__bootFail('Script error: ' + (ev.message || 'unknown') + (ev.filename ? ' (' + ev.filename.split('/').pop() + ':' + ev.lineno + ')' : ''));
+    }
+  }, true);
+  window.addEventListener('unhandledrejection', function (ev) { if (!window.__booted) window.__bootFail('Unhandled error: ' + (ev.reason && ev.reason.message || ev.reason)); });
+  setTimeout(function () { if (!window.__booted) window.__bootFail('Loading timed out after 15 seconds.'); }, 15000);
+  document.addEventListener('DOMContentLoaded', function () {
+    $('boot-retry').onclick = function () { location.reload(); };
+    $('boot-reset').onclick = function () {
+      if (!window.confirm('Reset your save data? A backup copy is kept in browser storage.')) return;
+      try {
+        var keys = []; for (var i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+        keys.forEach(function (k) {
+          if (k && k.indexOf('jjk_td_save') === 0 && k.indexOf('_backup') < 0 && k.indexOf('_reset_backup') < 0) {
+            if (k === 'jjk_td_save') { try { localStorage.setItem('jjk_td_save_reset_backup', localStorage.getItem(k)); } catch (e) {} }
+            localStorage.removeItem(k);
+          }
+        });
+      } catch (e) {}
+      location.reload();
+    };
+  });
+})();
+</script>
+
+<!-- Game logic (headless-testable; order mirrors tests/load.js) -->
+<script src="js/core/util.js"></script>
+<script src="js/data/balance.js"></script>
+<script src="js/data/characters.js"></script>
+<script src="js/data/characters2.js"></script>
+<script src="js/data/enemies.js"></script>
+<script src="js/data/maps.js"></script>
+<script src="js/data/meta.js"></script>
+<script src="js/core/save-manager.js"></script>
+<script src="js/core/progression.js"></script>
+<script src="js/sim/waves.js"></script>
+<script src="js/sim/battle.js"></script>
+<script src="js/sim/kits.js"></script>
+<script src="js/sim/kits2.js"></script>
+<script src="js/sim/bosses.js"></script>
+<script src="js/sim/bot.js"></script>
+<script src="js/sim/selftest.js"></script>
+<!-- Presentation -->
+<script src="js/render/models.js"></script>
+<script src="js/render/models-bosses.js"></script>
+<script src="js/render/art.js"></script>
+<script src="js/render/models-bosses2.js"></script>
+<script src="js/render/models-allies.js"></script>
+<script src="js/render/models-chars.js"></script>
+<script src="js/render/backgrounds.js"></script>
+<script src="js/render/vfx.js"></script>
+<script src="js/render/battle-renderer.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/ui/ui-core.js"></script>
+<script src="js/ui/menu.js"></script>
+<script src="js/ui/play.js"></script>
+<script src="js/ui/battle-screen.js"></script>
+<script src="js/ui/results.js"></script>
+<script src="js/ui/characters.js"></script>
+<script src="js/ui/summon.js"></script>
+<script src="js/ui/shop.js"></script>
+<script src="js/ui/inventory.js"></script>
+<script src="js/ui/missions.js"></script>
+<script src="js/ui/codex.js"></script>
+<script src="js/ui/settings.js"></script>
+<script src="js/ui/debug.js"></script>
+<script src="js/ui/owner.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

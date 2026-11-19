@@ -1,0 +1,6 @@
+{
+  "appId": "com.jjktd.game",
+  "appName": "JJK Tower Defense",
+  "webDir": "www",
+  "ios": { "contentInset": "never", "backgroundColor": "#0b0820" }
+}
