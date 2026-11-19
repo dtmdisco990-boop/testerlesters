@@ -1,0 +1,13 @@
+const { loadGame } = require('../load');
+const J = loadGame();
+const [map='tokyo', diff='normal', teamCsv='yuji,panda,nobara', lvl='1'] = process.argv.slice(2);
+const team = teamCsv.split(',').map((id) => ({ id, level: +lvl, stars: 0 }));
+const b = new J.Battle({ mapId: map, diff, team, seed: 7 });
+const leaks = {};
+b.events.on('leak', ({ enemy }) => { leaks[b.wave] = (leaks[b.wave] || 0) + enemy.leak; });
+let yenAtWave = {};
+b.events.on('wave', ({ n }) => { yenAtWave[n] = Math.round(b.yen); });
+const s = J.Bot.run(b, { skill: 'good', maxSeconds: 4000 });
+console.log(map, diff, teamCsv, 'victory=' + s.victory, 'wave=' + s.wave + '/' + s.totalWaves, 'baseLost=' + s.baseLost, 'units=' + b.units.length, 'time=' + s.duration + 's');
+console.log('leaks by wave:', JSON.stringify(leaks));
+console.log('units:', b.units.map((u) => u.id + 'L' + u.level).join(' '));

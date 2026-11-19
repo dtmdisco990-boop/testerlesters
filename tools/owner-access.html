@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!-- Offline helper: open this file in your browser, type the access code you want, copy the generated line into js/data/balance.js.
+     Everything runs locally with the browser's Web Crypto API; the code is never sent or stored anywhere. Do not publish a page that has your code typed in. -->
+<html lang="en"><head><meta charset="utf-8"><title>Owner access hash generator</title>
+<style>body{font:15px system-ui;background:#0d0b22;color:#eee;max-width:640px;margin:40px auto;padding:0 16px}input,button,textarea{font:inherit;padding:8px;border-radius:6px;border:1px solid #556;background:#14122e;color:#fff;width:100%;box-sizing:border-box;margin:6px 0}button{cursor:pointer;background:#5a3cd8}textarea{height:90px;font-family:monospace;font-size:12px}small{color:#aab}</style></head>
+<body><h2>Owner access hash generator</h2>
+<p><small>Runs only in this tab. Paste the output between <code>OWNER-ACCESS-BEGIN</code> and <code>OWNER-ACCESS-END</code> in <code>js/data/balance.js</code>.</small></p>
+<input id="code" type="password" autocomplete="off" placeholder="Your private access code (10+ characters)">
+<button id="go">Generate</button>
+<textarea id="out" readonly placeholder="Output appears here"></textarea>
+<p id="msg"><small></small></p>
+<script>
+document.getElementById('go').onclick = async () => {
+  const code = document.getElementById('code').value, m = document.querySelector('#msg small'), out = document.getElementById('out');
+  out.value = '';
+  if (code.length < 10) { m.textContent = 'Use at least 10 characters.'; return; }
+  if (!(window.crypto && crypto.subtle)) { m.textContent = 'Web Crypto is unavailable here (open over https or from a local file in Chrome/Safari/Firefox).'; return; }
+  const iterations = 210000, saltBytes = crypto.getRandomValues(new Uint8Array(16)), hex = (b) => Array.from(new Uint8Array(b), (x) => x.toString(16).padStart(2, '0')).join('');
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(code), 'PBKDF2', false, ['deriveBits']);
+  const hash = hex(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: saltBytes, iterations }, key, 256));
+  out.value = "OWNER_ACCESS: { enabled: true, iterations: " + iterations + ", salt: '" + btoa(String.fromCharCode(...saltBytes)) + "', hash: '" + hash + "' },";
+  document.getElementById('code').value = ''; m.textContent = 'Done. The code field was cleared.';
+};
+</script></body></html>
